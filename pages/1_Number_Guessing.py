@@ -1,110 +1,52 @@
-import random
-import matplotlib
-matplotlib.use('Agg')  # Ensure correct backend for Streamlit
-import matplotlib.pyplot as plt
 import streamlit as st
+import os
 
-# Define global variables
-attempts = []
-guesses = []
+# App Title and Introduction
+st.title("Welcome to the Simulation App")
+st.write("""
+This app provides various simulations to help you understand different scenarios and processes.
+""")
 
-# Function for guessing simulation
-def guess(mode, num_range):
-    secret_number = random.randint(1, num_range)
-    low = 1
-    high = num_range
-    attempt = 0
-    found = False
+# Page Navigation
+page = st.selectbox(
+    "Select a page:",
+    ("Introduction", "Simulation 1", "Simulation 2", "Simulation 3", "Simulation 4")
+)
 
-    st.info(f"Secret number selected between 1 and {num_range}. Start guessing!")
+# Introduction Section
+if page == "Introduction":
+    st.header("Introduction")
+    st.write("""
+    This simulation app offers a variety of simulations to help you explore different scenarios and their outcomes. 
+    Each simulation is designed to give you insights into specific processes or behaviors.
 
-    # Progress bar in Streamlit
-    progress_bar = st.progress(0)
-    while not found:
-        # Guess logic
-        if mode == "Random Guess Mode":
-            current_guess = random.randint(low, high)
-        elif mode == "Binary Search Mode":
-            current_guess = (low + high) // 2
-        elif mode == "Ternary Search Mode":
-            mid1 = low + (high - low) // 3
-            mid2 = high - (high - low) // 3
-            if secret_number < mid1:
-                current_guess = low + (mid1 - low) // 2
-            elif secret_number > mid2:
-                current_guess = high - (high - mid2) // 2
-            else:
-                current_guess = (mid1 + mid2) // 2
-        elif mode == "Golden Ratio Search Mode":
-            golden_ratio = 0.618
-            mid = int(low + golden_ratio * (high - low))
-            current_guess = mid
+    - **Simulation 1**: Number Guessing Simulation
+      - **Description**: A fun game where you guess a random number between 1 and 100. The app gives you hints whether your guess is too high or too low.
+      
+    - **Simulation 2**: Dynamic ATM Simulation
+      - **Description**: Simulates the behavior of an ATM system including transaction processing, account management, and failure handling. This simulation helps you understand how an ATM system operates and responds to various scenarios.
+      
+    - **Simulation 3**: Analyzing Biased Dice Rolls
+      - **Description**: Analyzes the behavior of biased dice rolls to determine if the dice is fair or biased. It simulates multiple rolls and uses statistical methods to provide insights.
+      
+    - **Simulation 4**: Monte Carlo Dice Simulation
+      - **Description**: Uses the Monte Carlo method to simulate and analyze dice rolls over a large number of iterations. It helps in understanding probability distributions and statistical variability.
+    """)
 
-        # Record data
-        attempt += 1
-        attempts.append(attempt)
-        guesses.append(current_guess)
+# Page Navigation to Individual Simulations
+if page == "Simulation 1":
+    st.header("Number Guessing Simulation")
+    exec(open("pages/1_Number_Guessing.py").read())
 
-        # Update progress bar
-        progress_bar.progress(min((abs(current_guess - secret_number) / num_range), 1.0))
+elif page == "Simulation 2":
+    st.header("Dynamic ATM Simulation")
+    exec(open("pages/2_Dynamic_Atm.py").read())
 
-        # Evaluate guess
-        if current_guess == secret_number:
-            st.success(f"Success! Guessed the number {secret_number} in {attempt} attempts!")
-            found = True
-        elif current_guess < secret_number:
-            st.warning(f"Guess {current_guess} is too low.")
-            low = current_guess + 1
-        else:
-            st.warning(f"Guess {current_guess} is too high.")
-            high = current_guess - 1
+elif page == "Simulation 3":
+    st.header("Analyzing Biased Dice Rolls")
+    exec(open("pages/3_Biased_Dice_Rolls.py").read())
 
-        # Plot progress
-        plot_progress(mode, attempt, current_guess, low, high, num_range)
-
-    # Print summary
-    print_summary(secret_number, attempt, mode)
-
-def plot_progress(mode, attempt, current_guess, low, high, num_range):
-    st.subheader("Simulation Progress")
-    plt.figure(figsize=(10, 5))
-    plt.plot(attempts, guesses, 'b-o', label="Guesses")
-    plt.axhline(low, color='g', linestyle='--', label="Lower Bound")
-    plt.axhline(high, color='r', linestyle='--', label="Upper Bound")
-    plt.scatter(attempt, current_guess, color='orange', zorder=5, label=f"Current Guess: {current_guess}")
-    plt.xlabel('Attempts')  
-    plt.ylabel('Guesses')  
-    plt.title(f"{mode}\nTotal Attempts: {attempt}")  
-    plt.legend()
-    plt.grid(True)
-    st.pyplot(plt)
-
-def print_summary(secret_number, attempt, mode):
-    st.subheader("Simulation Summary")
-    st.write(f"Secret Number: {secret_number}")
-    st.write(f"Total Attempts: {attempt}")
-    st.write(f"Mode Used: {mode}")
-    avg_guess = sum(guesses) // len(guesses)
-    st.write(f"Average Guess: {avg_guess}")
-
-# Streamlit App Layout
-def main():
-    st.title("Guessing Simulation")
-
-    # User inputs
-    mode = st.selectbox("Choose the guessing mode", [
-        "Random Guess Mode",
-        "Binary Search Mode",
-        "Ternary Search Mode",
-        "Golden Ratio Search Mode"
-    ])
-    num_range = st.number_input("Enter the range of numbers (e.g., 100000)", min_value=1, value=100000)
-
-    if st.button("Start Simulation"):
-        # Reset global variables
-        attempts.clear()
-        guesses.clear()
-        guess(mode, num_range)
-
-if __name__ == "__main__":
-    main()
+elif page == "Simulation 4":
+    st.header("Monte Carlo Dice Simulation")
+    exec(open("pages/4_Monte_Carlo_Dice.py").read())
+ 
