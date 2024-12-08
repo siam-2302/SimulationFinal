@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
 import streamlit as st
+import time
 
 # Initialize global variables
 attempts = []
@@ -16,6 +17,7 @@ def guess(mode):
 
     st.info(f"[INFO] Secret number is randomly selected between 1 and 100,000.")
     progress_bar = st.progress(0)
+    chart_placeholder = st.empty()  # Placeholder for the chart
 
     while not found:
         # Guess logic for each mode
@@ -45,28 +47,26 @@ def guess(mode):
         guesses.append(current_guess)
 
         # Update progress
-        progress = 1 - abs(current_guess - secret_number) / 100000
-        progress_bar.progress(progress)
+        progress = attempt / 100  # Simulate progress
+        progress_bar.progress(min(progress, 1.0))  # Cap progress at 100%
 
-        # Display plot
-        plot_progress(mode, attempt, current_guess, low, high)
+        # Update the graph dynamically
+        plot_progress(mode, attempt, current_guess, low, high, chart_placeholder)
 
         # Evaluate guess
         if current_guess == secret_number:
             st.success(f"🎉 Success! Guessed the number {secret_number} in {attempt} attempts!")
             found = True
         elif current_guess < secret_number:
-            st.warning(f"Guess {current_guess} is too low.")
             low = current_guess + 1
         else:
-            st.warning(f"Guess {current_guess} is too high.")
             high = current_guess - 1
 
     # Print summary
     print_summary(secret_number, attempt, mode)
 
 # Plot progress function
-def plot_progress(mode, attempt, current_guess, low, high):
+def plot_progress(mode, attempt, current_guess, low, high, chart_placeholder):
     mode_titles = {
         1: 'Random Guess Mode',
         2: 'Binary Search Mode',
@@ -76,17 +76,20 @@ def plot_progress(mode, attempt, current_guess, low, high):
     }
     title = mode_titles.get(mode, 'Unknown Mode')
 
+    # Create the plot
     plt.figure(figsize=(10, 5))
-    plt.plot(attempts, guesses, 'b-o', label="Guesses")
+    plt.plot(attempts, guesses, 'b-o', label="Guesses", markersize=4)
     plt.axhline(low, color='g', linestyle='--', label="Lower Bound")
     plt.axhline(high, color='r', linestyle='--', label="Upper Bound")
     plt.scatter(attempt, current_guess, color='orange', zorder=5, label=f"Current Guess: {current_guess}")
     plt.xlabel('Attempts')  
     plt.ylabel('Guesses')  
-    plt.title(f"{title}\nTotal Attempts: {attempt}")  
+    plt.title(f"{title}\nAttempt: {attempt}, Current Guess: {current_guess}")  
     plt.legend()
     plt.grid(True)
-    st.pyplot(plt)
+    chart_placeholder.pyplot(plt)  # Use placeholder to update the chart
+    plt.close()  # Prevent memory overflow
+    time.sleep(0.1)  # Pause for animation effect
 
 # Print summary
 def print_summary(secret_number, attempt, mode):
@@ -102,7 +105,7 @@ def print_summary(secret_number, attempt, mode):
 st.title("Number Guessing Simulation")
 st.sidebar.title("Choose Simulation Mode")
 
-mode = st.sidebar.selectbox(
+mode = st.sidebar.radio(
     "Select the guessing mode:",
     options=[
         "Random Guess Mode",
@@ -110,8 +113,7 @@ mode = st.sidebar.selectbox(
         "Ternary Search Mode",
         "Golden Ratio Search Mode",
         "Logarithmic Search Mode"
-    ],
-    index=0
+    ]
 )
 
 mode_mapping = {
